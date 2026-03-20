@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Notes - Notepad</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h2>📝 Notepad</h2>
+            <div class="user-info">
+                <span id="user-display">Loading...</span>
+                <button id="logout-btn" class="logout-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="notes-container">
+        <!-- Notes Sidebar -->
+        <div class="notes-sidebar">
+            <h3>My Notes</h3>
+            <button id="new-note-btn" class="new-note-btn">+ New Note</button>
+            <div id="notes-list" class="notes-list">
+                <!-- Notes will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Note Editor -->
+        <div class="note-editor">
+            <input type="text" id="note-title" placeholder="Note Title" class="note-title-input">
+            <textarea id="note-content" placeholder="Write your note here..." class="note-content-textarea"></textarea>
+            <div class="editor-footer">
+                <button id="save-note-btn" class="save-btn">Save Note</button>
+                <button id="delete-note-btn" class="delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden field to store current note ID -->
+    <input type="hidden" id="current-note-id">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- Our Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="notes.js"></script>
+</body>
+</html>
