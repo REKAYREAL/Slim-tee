@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on notes page
     if (!window.location.pathname.includes('notes.html')) return;
     
     let currentNoteId = null;
     let currentUser = null;
+    let allNotes = [];
+    let autoSaveTimeout;
     
     // Get elements
     const notesListEl = document.getElementById('notes-list');
@@ -12,17 +13,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveBtn = document.getElementById('save-note-btn');
     const deleteBtn = document.getElementById('delete-note-btn');
     const newNoteBtn = document.getElementById('new-note-btn');
+    const searchInput = document.getElementById('search-notes');
+    const wordCountEl = document.getElementById('word-count');
+    const charCountEl = document.getElementById('char-count');
+    const lastSavedEl = document.getElementById('last-saved');
     const currentNoteIdInput = document.getElementById('current-note-id');
     
     // Listen for auth state
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
+            document.getElementById('user-display').textContent = user.displayName || user.email;
             loadNotes();
+        } else {
+            window.location.href = 'index.html';
         }
     });
     
-    // Load notes from Firestore
+    // Load notes with real-time updates
     function loadNotes() {
         if (!currentUser) return;
         
@@ -30,38 +38,67 @@ document.addEventListener('DOMContentLoaded', function() {
             .where('userId', '==', currentUser.uid)
             .orderBy('updatedAt', 'desc')
             .onSnapshot(snapshot => {
-                let html = '';
-                
-                if (snapshot.empty) {
-                    html = '<div class="loading">No notes yet. Create one!</div>';
-                } else {
-                    snapshot.forEach(doc => {
-                        const note = doc.data();
-                        const date = note.updatedAt ? note.updatedAt.toDate() : new Date();
-                        const formattedDate = date.toLocaleDateString();
-                        
-                        html += `
-                            <div class="note-item ${doc.id === currentNoteId ? 'selected' : ''}" 
-                                 data-id="${doc.id}">
-                                <h4>${note.title || 'Untitled'}</h4>
-                                <p>${note.content.substring(0, 50)}...</p>
-                                <small>${formattedDate}</small>
-                            </div>
-                        `;
-                    });
-                }
-                
-                notesListEl.innerHTML = html;
-                
-                // Add click listeners to note items
-                document.querySelectorAll('.note-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const noteId = item.dataset.id;
-                        loadNote(noteId);
+                allNotes = [];
+                snapshot.forEach(doc => {
+                    allNotes.push({
+                        id: doc.id,
+                        ...doc.data()
                     });
                 });
+                displayNotes(allNotes);
             });
     }
+    
+    // Display notes in sidebar
+    function displayNotes(notes) {
+        if (notes.length === 0) {
+            notesListEl.innerHTML = '<div class="no-notes">No notes yet. Create one!</div>';
+            return;
+        }
+        
+        let html = '';
+        notes.forEach(note => {
+            const date = note.updatedAt ? note.updatedAt.toDate() : new Date();
+            const formattedDate = date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Get preview (first 100 chars)
+            const preview = note.content ? note.content.substring(0, 100) + '...' : 'Empty note';
+            
+            html += `
+                <div class="note-item ${note.id === currentNoteId ? 'selected' : ''}" data-id="${note.id}">
+                    <div class="note-item-title">${note.title || 'Untitled'}</div>
+                    <div class="note-item-preview">${preview}</div>
+                    <div class="note-item-date">${formattedDate}</div>
+                </div>
+            `;
+        });
+        
+        notesListEl.innerHTML = html;
+        
+        // Add click listeners
+        document.querySelectorAll('.note-item').forEach(item => {
+            item.addEventListener('click', () => loadNote(item.dataset.id));
+        });
+    }
+    
+    // Search functionality
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        if (searchTerm === '') {
+            displayNotes(allNotes);
+        } else {
+            const filtered = allNotes.filter(note => 
+                (note.title && note.title.toLowerCase().includes(searchTerm)) ||
+                (note.content && note.content.toLowerCase().includes(searchTerm))
+            );
+            displayNotes(filtered);
+        }
+    });
     
     // Load a single note
     function loadNote(noteId) {
@@ -73,8 +110,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentNoteId = doc.id;
                 currentNoteIdInput.value = doc.id;
                 deleteBtn.disabled = false;
+                updateWordCount();
                 
-                // Update selected state in sidebar
+                // Update selected state
                 document.querySelectorAll('.note-item').forEach(item => {
                     item.classList.remove('selected');
                     if (item.dataset.id === currentNoteId) {
@@ -86,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Save note
-    saveBtn.addEventListener('click', () => {
+    function saveNote() {
         if (!currentUser) return;
         
         const title = noteTitle.value.trim() || 'Untitled';
@@ -108,11 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update existing note
             db.collection('notes').doc(currentNoteId).update(noteData)
                 .then(() => {
-                    console.log('Note updated');
+                    lastSavedEl.textContent = 'Saved just now';
+                    setTimeout(() => {
+                        lastSavedEl.textContent = '';
+                    }, 3000);
                 })
-                .catch(error => {
-                    console.error('Error updating note:', error);
-                });
+                .catch(error => console.error('Error updating note:', error));
         } else {
             // Create new note
             noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -122,14 +161,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentNoteId = docRef.id;
                     currentNoteIdInput.value = docRef.id;
                     deleteBtn.disabled = false;
+                    lastSavedEl.textContent = 'Saved just now';
                 })
-                .catch(error => {
-                    console.error('Error creating note:', error);
-                });
+                .catch(error => console.error('Error creating note:', error));
         }
+    }
+    
+    // Auto-save
+    function triggerAutoSave() {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            if (noteContent.value.trim() && currentUser) {
+                saveNote();
+            }
+        }, 2000);
+    }
+    
+    // Update word and character count
+    function updateWordCount() {
+        const content = noteContent.value;
+        const words = content.trim() ? content.trim().split(/\s+/).length : 0;
+        const chars = content.length;
+        
+        wordCountEl.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+        charCountEl.textContent = `${chars} character${chars !== 1 ? 's' : ''}`;
+    }
+    
+    // Event listeners
+    saveBtn.addEventListener('click', saveNote);
+    
+    noteContent.addEventListener('input', () => {
+        updateWordCount();
+        triggerAutoSave();
     });
     
-    // Delete note
+    noteTitle.addEventListener('input', triggerAutoSave);
+    
     deleteBtn.addEventListener('click', () => {
         if (!currentNoteId) return;
         
@@ -142,35 +209,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentNoteId = null;
                     currentNoteIdInput.value = '';
                     deleteBtn.disabled = true;
+                    updateWordCount();
+                    lastSavedEl.textContent = '';
                 })
-                .catch(error => {
-                    console.error('Error deleting note:', error);
-                });
+                .catch(error => console.error('Error deleting note:', error));
         }
     });
     
-    // New note
     newNoteBtn.addEventListener('click', () => {
         noteTitle.value = '';
         noteContent.value = '';
         currentNoteId = null;
         currentNoteIdInput.value = '';
         deleteBtn.disabled = true;
+        updateWordCount();
+        lastSavedEl.textContent = '';
         
-        // Remove selected class from all notes
+        // Remove selected class
         document.querySelectorAll('.note-item').forEach(item => {
             item.classList.remove('selected');
         });
+        
+        // Focus on title
+        noteTitle.focus();
     });
     
-    // Auto-save (optional)
-    let autoSaveTimeout;
-    noteContent.addEventListener('input', () => {
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-            if (noteContent.value.trim()) {
-                saveBtn.click();
-            }
-        }, 2000);
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + S to save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            saveNote();
+        }
+        
+        // Ctrl/Cmd + N for new note
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            newNoteBtn.click();
+        }
     });
 });

@@ -3,50 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Notes - Notepad</title>
+    <title>My Notes - CloudNotes</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <h2>📝 Notepad</h2>
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>📝 CloudNotes</h2>
+                <button id="new-note-btn" class="new-note-btn">+ New Note</button>
+            </div>
+            
             <div class="user-info">
+                <div class="user-avatar" id="user-avatar">👤</div>
                 <span id="user-display">Loading...</span>
                 <button id="logout-btn" class="logout-btn">Logout</button>
             </div>
-        </div>
-    </nav>
 
-    <div class="notes-container">
-        <!-- Notes Sidebar -->
-        <div class="notes-sidebar">
-            <h3>My Notes</h3>
-            <button id="new-note-btn" class="new-note-btn">+ New Note</button>
-            <div id="notes-list" class="notes-list">
-                <!-- Notes will be loaded here -->
+            <div class="search-box">
+                <input type="text" id="search-notes" placeholder="🔍 Search notes...">
+            </div>
+
+            <div class="notes-list" id="notes-list">
+                <!-- Notes will appear here -->
             </div>
         </div>
 
-        <!-- Note Editor -->
-        <div class="note-editor">
-            <input type="text" id="note-title" placeholder="Note Title" class="note-title-input">
-            <textarea id="note-content" placeholder="Write your note here..." class="note-content-textarea"></textarea>
+        <!-- Main Editor Area -->
+        <div class="main-content">
+            <div class="editor-header">
+                <input type="text" id="note-title" placeholder="Note title..." class="title-input">
+                <div class="editor-actions">
+                    <span id="last-saved" class="last-saved"></span>
+                    <button id="save-note-btn" class="save-btn">💾 Save</button>
+                    <button id="delete-note-btn" class="delete-btn">🗑️ Delete</button>
+                </div>
+            </div>
+            
+            <textarea id="note-content" placeholder="Start writing your note here..."></textarea>
+            
             <div class="editor-footer">
-                <button id="save-note-btn" class="save-btn">Save Note</button>
-                <button id="delete-note-btn" class="delete-btn">Delete</button>
+                <span id="word-count">0 words</span>
+                <span id="char-count">0 characters</span>
             </div>
         </div>
     </div>
 
-    <!-- Hidden field to store current note ID -->
     <input type="hidden" id="current-note-id">
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-    <!-- Our Scripts -->
     <script src="firebase-config.js"></script>
     <script src="auth.js"></script>
     <script src="notes.js"></script>
