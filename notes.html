@@ -229,10 +229,10 @@
         <div class="avatar-menu-wrapper" id="avatarWrapper">
           <button class="avatar-btn" id="avatarBtn">👤</button>
           <div id="avatarDropdown" class="avatar-dropdown">
-            <div class="user-info-card" id="userInfoCard">
-              <div class="user-name">Loading...</div>
-              <div class="user-email">Loading...</div>
-              <div class="user-uid">Loading...</div>
+            <div class="user-info-card">
+              <div class="user-name" id="user-name">Loading...</div>
+              <div class="user-email" id="user-email">Loading...</div>
+              <div class="user-uid" id="user-uid">Loading...</div>
             </div>
             <button class="dropdown-item" id="changePasswordOption"><i class="fas fa-key"></i>Change password</button>
             <button class="dropdown-item" id="logoutOption"><i class="fas fa-sign-out-alt"></i>Logout</button>
@@ -257,138 +257,154 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script>
-  // Auth check
-  firebase.auth().onAuthStateChanged(user => {
-    if (!user) {
-      window.location.href = 'index.html';
-    } else {
+  // Wait for DOM and Firebase
+  document.addEventListener('DOMContentLoaded', () => {
+    // Auth check
+    firebase.auth().onAuthStateChanged(user => {
+      console.log('Auth state changed:', user ? user.email : 'null');
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+
       // Populate user info in avatar dropdown
       const userName = user.displayName || 'User';
       const userEmail = user.email;
       const userUID = user.uid;
+
       document.getElementById('user-name').innerText = userName;
       document.getElementById('user-email').innerText = userEmail;
       document.getElementById('user-uid').innerText = `UID: ${userUID}`;
-      // Set avatar initial
+
+      // Set avatar initial (first letter or 'U')
       const avatarBtn = document.getElementById('avatarBtn');
-      avatarBtn.innerText = userName.charAt(0).toUpperCase();
-      // Load notes
+      const initial = userName.charAt(0).toUpperCase();
+      avatarBtn.innerText = initial;
+
+      // Load notes after user is confirmed
       loadNotes();
-    }
-  });
+    });
 
-  // Elements
-  const notesListEl = document.getElementById('notesList');
-  const searchToggle = document.getElementById('searchToggleBtn');
-  const searchContainer = document.getElementById('searchContainer');
-  const searchInput = document.getElementById('searchInput');
-  let allNotes = [];
-  let unsubscribe = null;
+    // Elements
+    const notesListEl = document.getElementById('notesList');
+    const searchToggle = document.getElementById('searchToggleBtn');
+    const searchContainer = document.getElementById('searchContainer');
+    const searchInput = document.getElementById('searchInput');
+    let allNotes = [];
+    let unsubscribe = null;
 
-  function loadNotes() {
-    const user = firebase.auth().currentUser;
-    if (!user) return;
-    if (unsubscribe) unsubscribe();
-    notesListEl.innerHTML = '<div class="loading">Loading your notes...</div>';
-    unsubscribe = db.collection('notes')
-      .where('userId', '==', user.uid)
-      .orderBy('updatedAt', 'desc')
-      .onSnapshot(snapshot => {
-        if (snapshot.empty) {
-          notesListEl.innerHTML = '<div class="empty-message"><i class="fas fa-sticky-note"></i> No notes yet. Tap + to create one.</div>';
-          allNotes = [];
-          return;
-        }
-        allNotes = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        renderNotes();
-      }, error => {
-        console.error('Error loading notes:', error);
-        notesListEl.innerHTML = '<div class="empty-message">Error loading notes. Please try again.</div>';
-      });
-  }
+    function loadNotes() {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        console.warn('loadNotes called without user');
+        return;
+      }
+      console.log('Loading notes for user:', user.uid);
+      if (unsubscribe) unsubscribe();
+      notesListEl.innerHTML = '<div class="loading">Loading your notes...</div>';
+      unsubscribe = db.collection('notes')
+        .where('userId', '==', user.uid)
+        .orderBy('updatedAt', 'desc')
+        .onSnapshot(snapshot => {
+          console.log(`Got ${snapshot.size} notes for user ${user.email}`);
+          if (snapshot.empty) {
+            notesListEl.innerHTML = '<div class="empty-message"><i class="fas fa-sticky-note"></i> No notes yet. Tap + to create one.</div>';
+            allNotes = [];
+            return;
+          }
+          allNotes = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          renderNotes();
+        }, error => {
+          console.error('Error loading notes:', error);
+          notesListEl.innerHTML = `<div class="empty-message">Error loading notes: ${error.message}</div>`;
+        });
+    }
 
-  function renderNotes(filter = '') {
-    let filtered = allNotes;
-    if (filter.trim() !== '') {
-      const term = filter.toLowerCase();
-      filtered = allNotes.filter(n => 
-        (n.title && n.title.toLowerCase().includes(term)) || 
-        (n.content && n.content.toLowerCase().includes(term))
-      );
-    }
-    if (filtered.length === 0) {
-      notesListEl.innerHTML = '<div class="empty-message"><i class="fas fa-sticky-note"></i> No notes match your search.</div>';
-      return;
-    }
-    notesListEl.innerHTML = filtered.map(note => `
-      <div class="note-entry">
-        <div class="note-title">
-          <span>${escapeHtml(note.title) || 'Untitled'}</span>
-          <button class="delete-note" data-id="${note.id}"><i class="fas fa-trash-alt"></i></button>
+    function renderNotes(filter = '') {
+      let filtered = allNotes;
+      if (filter.trim() !== '') {
+        const term = filter.toLowerCase();
+        filtered = allNotes.filter(n => 
+          (n.title && n.title.toLowerCase().includes(term)) || 
+          (n.content && n.content.toLowerCase().includes(term))
+        );
+      }
+      if (filtered.length === 0) {
+        notesListEl.innerHTML = '<div class="empty-message"><i class="fas fa-sticky-note"></i> No notes match your search.</div>';
+        return;
+      }
+      notesListEl.innerHTML = filtered.map(note => `
+        <div class="note-entry">
+          <div class="note-title">
+            <span>${escapeHtml(note.title) || 'Untitled'}</span>
+            <button class="delete-note" data-id="${note.id}"><i class="fas fa-trash-alt"></i></button>
+          </div>
+          <div class="note-preview">${escapeHtml((note.content || '').substring(0, 120))}${(note.content || '').length > 120 ? '…' : ''}</div>
         </div>
-        <div class="note-preview">${escapeHtml((note.content || '').substring(0, 120))}${(note.content || '').length > 120 ? '…' : ''}</div>
-      </div>
-    `).join('');
-    // attach delete events
-    document.querySelectorAll('.delete-note').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.id;
-        if (confirm('Delete this note?')) {
-          db.collection('notes').doc(id).delete().catch(console.error);
-        }
+      `).join('');
+      // attach delete events
+      document.querySelectorAll('.delete-note').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          if (confirm('Delete this note?')) {
+            db.collection('notes').doc(id).delete()
+              .then(() => console.log('Note deleted:', id))
+              .catch(console.error);
+          }
+        });
       });
-    });
-  }
-
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-      if (m === '&') return '&amp;';
-      if (m === '<') return '&lt;';
-      if (m === '>') return '&gt;';
-      return m;
-    });
-  }
-
-  // Search toggle
-  searchToggle.addEventListener('click', () => {
-    if (searchContainer.style.display === 'none' || !searchContainer.style.display) {
-      searchContainer.style.display = 'block';
-      searchInput.focus();
-    } else {
-      searchContainer.style.display = 'none';
-      searchInput.value = '';
-      renderNotes();
     }
-  });
-  searchInput.addEventListener('input', (e) => renderNotes(e.target.value));
 
-  // Avatar dropdown
-  const avatarBtn = document.getElementById('avatarBtn');
-  const avatarDropdown = document.getElementById('avatarDropdown');
-  function closeAvatarDropdown() { avatarDropdown.style.display = 'none'; }
-  function toggleAvatarDropdown(e) {
-    e.stopPropagation();
-    avatarDropdown.style.display = avatarDropdown.style.display === 'block' ? 'none' : 'block';
-  }
-  avatarBtn.addEventListener('click', toggleAvatarDropdown);
-  document.addEventListener('click', (e) => {
-    if (!avatarBtn.contains(e.target) && !avatarDropdown.contains(e.target)) closeAvatarDropdown();
-  });
-  avatarDropdown.addEventListener('click', e => e.stopPropagation());
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
 
-  // Change password and logout actions
-  document.getElementById('changePasswordOption').addEventListener('click', () => {
-    alert('🔐 Change password – this would open a password reset form.');
-    closeAvatarDropdown();
-  });
-  document.getElementById('logoutOption').addEventListener('click', () => {
-    firebase.auth().signOut().then(() => {
-      window.location.href = 'index.html';
+    // Search toggle
+    searchToggle.addEventListener('click', () => {
+      if (searchContainer.style.display === 'none' || !searchContainer.style.display) {
+        searchContainer.style.display = 'block';
+        searchInput.focus();
+      } else {
+        searchContainer.style.display = 'none';
+        searchInput.value = '';
+        renderNotes();
+      }
+    });
+    searchInput.addEventListener('input', (e) => renderNotes(e.target.value));
+
+    // Avatar dropdown
+    const avatarBtn = document.getElementById('avatarBtn');
+    const avatarDropdown = document.getElementById('avatarDropdown');
+    function closeAvatarDropdown() { avatarDropdown.style.display = 'none'; }
+    function toggleAvatarDropdown(e) {
+      e.stopPropagation();
+      avatarDropdown.style.display = avatarDropdown.style.display === 'block' ? 'none' : 'block';
+    }
+    avatarBtn.addEventListener('click', toggleAvatarDropdown);
+    document.addEventListener('click', (e) => {
+      if (!avatarBtn.contains(e.target) && !avatarDropdown.contains(e.target)) closeAvatarDropdown();
+    });
+    avatarDropdown.addEventListener('click', e => e.stopPropagation());
+
+    // Change password and logout actions
+    document.getElementById('changePasswordOption').addEventListener('click', () => {
+      alert('🔐 Change password – this would open a password reset form.');
+      closeAvatarDropdown();
+    });
+    document.getElementById('logoutOption').addEventListener('click', () => {
+      firebase.auth().signOut().then(() => {
+        window.location.href = 'index.html';
+      });
     });
   });
 </script>
