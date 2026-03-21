@@ -175,11 +175,18 @@
   <div id="toastMsg" class="toast-msg"></div>
 </div>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
-  // Auth check
-  if (!sessionStorage.getItem('isLoggedIn')) {
-    window.location.href = 'login.html';
-  }
+  // Auth check before allowing note creation
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'index.html';  // redirect to login if not authenticated
+    }
+  });
 
   const noteCard = document.getElementById('noteCard');
   const menuBtn = document.getElementById('menuBtn');
@@ -228,7 +235,6 @@
     const title = document.getElementById('noteTitle').value.trim();
     const content = document.getElementById('noteContent').value.trim();
     if (title === '' && content === '') {
-      // nothing to save, just go back
       window.location.href = 'notes.html';
       return;
     }
@@ -239,7 +245,7 @@
       content: content,
       createdAt: new Date().toISOString()
     };
-    notes.unshift(newNote); // newest first
+    notes.unshift(newNote);
     localStorage.setItem('notes', JSON.stringify(notes));
 
     toast.textContent = '✓ Note saved';
@@ -251,7 +257,6 @@
   }
 
   backBtn.addEventListener('click', saveAndGoBack);
-  // also allow Escape? Not needed, but back button is main action.
 </script>
 </body>
 </html>

@@ -39,6 +39,39 @@
       gap: 1rem;
       margin-bottom: 1rem;
     }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #f8fafc;
+      padding: 0.4rem 1rem 0.4rem 0.8rem;
+      border-radius: 40px;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: #eef2ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .user-display {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #1e293b;
+    }
+    .logout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #5b6e8c;
+      font-size: 1.2rem;
+      transition: color 0.2s;
+    }
+    .logout-btn:hover { color: #ef4444; }
     .notes-title {
       font-size: 2rem;
       font-weight: 700;
@@ -101,7 +134,6 @@
     .dropdown-item:hover { background: #f8fafc; }
     .divider { margin: 0.5rem 0 1.5rem 0; border: 0; height: 1px; background: #e2e8f0; }
 
-    /* search bar */
     .search-container {
       margin-bottom: 1rem;
       display: none;
@@ -168,6 +200,13 @@
   <div class="notes-inner">
     <div class="header-row">
       <h1 class="notes-title">NOTES</h1>
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">👤</div>
+        <span class="user-display" id="user-display"></span>
+        <button class="logout-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+    <div class="header-row">
       <div class="action-icons">
         <a href="addn.html" class="icon-btn" aria-label="Add new note"><i class="fas fa-plus"></i></a>
         <button class="icon-btn" id="searchToggleBtn" aria-label="Search"><i class="fas fa-search"></i></button>
@@ -175,7 +214,6 @@
           <button class="icon-btn" id="menuButton"><i class="fas fa-bars"></i></button>
           <div id="menuDropdown" class="dropdown-menu">
             <button class="dropdown-item" id="changePasswordOption"><i class="fas fa-key"></i>Change password</button>
-            <button class="dropdown-item" id="logoutOption"><i class="fas fa-sign-out-alt"></i>Logout</button>
           </div>
         </div>
       </div>
@@ -189,13 +227,14 @@
   </div>
 </div>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
 <script>
-  // Auth check
-  if (!sessionStorage.getItem('isLoggedIn')) {
-    window.location.href = 'login.html';
-  }
-
-  // ----- Notes logic -----
+  // Notes management (localStorage)
   let notes = [];
 
   function loadNotes() {
@@ -234,7 +273,6 @@
         <div class="note-preview">${escapeHtml(note.content.substring(0, 120))}${note.content.length > 120 ? '…' : ''}</div>
       </div>
     `).join('');
-    // attach delete events
     document.querySelectorAll('.delete-note').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -254,45 +292,51 @@
     });
   }
 
-  // search toggle
+  // Search toggle
   const searchToggle = document.getElementById('searchToggleBtn');
   const searchContainer = document.getElementById('searchContainer');
   const searchInput = document.getElementById('searchInput');
-  searchToggle.addEventListener('click', () => {
-    if (searchContainer.style.display === 'none' || !searchContainer.style.display) {
-      searchContainer.style.display = 'block';
-      searchInput.focus();
-    } else {
-      searchContainer.style.display = 'none';
-      searchInput.value = '';
-      renderNotes();
-    }
-  });
-  searchInput.addEventListener('input', (e) => {
-    renderNotes(e.target.value);
-  });
+  if (searchToggle) {
+    searchToggle.addEventListener('click', () => {
+      if (searchContainer.style.display === 'none' || !searchContainer.style.display) {
+        searchContainer.style.display = 'block';
+        searchInput.focus();
+      } else {
+        searchContainer.style.display = 'none';
+        searchInput.value = '';
+        renderNotes();
+      }
+    });
+  }
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      renderNotes(e.target.value);
+    });
+  }
 
-  // dropdown menu
+  // Dropdown menu (change password demo)
   const menuBtn = document.getElementById('menuButton');
   const dropdown = document.getElementById('menuDropdown');
-  function closeDropdown() { dropdown.style.display = 'none'; }
+  function closeDropdown() { if (dropdown) dropdown.style.display = 'none'; }
   function toggleDropdown(e) {
     e.stopPropagation();
     dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
   }
-  menuBtn.addEventListener('click', toggleDropdown);
-  document.addEventListener('click', (e) => {
-    if (!menuBtn.contains(e.target) && !dropdown.contains(e.target)) closeDropdown();
-  });
-  document.getElementById('changePasswordOption').addEventListener('click', () => {
-    alert('🔐 Change password (demo) – in a real app this would open a secure form.');
-    closeDropdown();
-  });
-  document.getElementById('logoutOption').addEventListener('click', () => {
-    sessionStorage.removeItem('isLoggedIn');
-    window.location.href = 'login.html';
-  });
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', toggleDropdown);
+    document.addEventListener('click', (e) => {
+      if (!menuBtn.contains(e.target) && !dropdown.contains(e.target)) closeDropdown();
+    });
+  }
+  const changePwdBtn = document.getElementById('changePasswordOption');
+  if (changePwdBtn) {
+    changePwdBtn.addEventListener('click', () => {
+      alert('🔐 Change password – this would open a secure form in a real app.');
+      closeDropdown();
+    });
+  }
 
+  // Load notes when auth is ready (auth.js sets onAuthStateChanged, but we can just load now)
   loadNotes();
 </script>
 </body>
