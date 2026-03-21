@@ -79,7 +79,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.04), 0 0 0 1px #e2e8f0;
     }
     .form-panel { display: none; }
-    .form-panel.active { display: block; animation: fadeIn 0.25s ease; }   /* Changed from active-panel to active */
+    .form-panel.active { display: block; animation: fadeIn 0.25s ease; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
@@ -125,6 +125,7 @@
     .forgot-link {
       color: #5b6e8c;
       text-decoration: none;
+      cursor: pointer;
     }
     .forgot-link:hover { color: #1e40af; text-decoration: underline; }
     .terms-group { margin: 1rem 0 1.5rem 0; }
@@ -203,7 +204,7 @@
     </div>
     <div class="login-options">
       <label class="checkbox"><input type="checkbox"> Remember me</label>
-      <a href="#" class="forgot-link">Forgot password?</a>
+      <a href="#" id="forgotPasswordLink" class="forgot-link">Forgot password?</a>
     </div>
     <button type="button" id="login-btn" class="auth-btn"><i class="fas fa-arrow-right-to-bracket"></i> Log in</button>
   </div>

@@ -216,6 +216,74 @@
       padding: 2rem;
       color: #94a3b8;
     }
+
+    /* Change Password Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+    .modal-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+    .modal-card {
+      background: white;
+      border-radius: 1.5rem;
+      max-width: 400px;
+      width: 90%;
+      padding: 1.5rem;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+    }
+    .modal-card h3 {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+    .modal-card input {
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      font-family: inherit;
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 0.5rem;
+    }
+    .modal-buttons button {
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .modal-buttons .cancel-btn {
+      background: #f1f5f9;
+    }
+    .modal-buttons .confirm-btn {
+      background: #1e293b;
+      color: white;
+    }
+    .modal-message {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      text-align: center;
+      color: #ef4444;
+    }
   </style>
 </head>
 <body>
@@ -251,84 +319,78 @@
   </div>
 </div>
 
+<!-- Change Password Modal -->
+<div id="changePwdModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3>Change password</h3>
+    <input type="password" id="currentPwd" placeholder="Current password" autocomplete="off">
+    <input type="password" id="newPwd" placeholder="New password (min 6 chars)">
+    <input type="password" id="confirmPwd" placeholder="Confirm new password">
+    <div id="modalMessage" class="modal-message"></div>
+    <div class="modal-buttons">
+      <button class="cancel-btn" id="cancelChangePwd">Cancel</button>
+      <button class="confirm-btn" id="confirmChangePwd">Update</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script>
-  // Wait for DOM and Firebase
   document.addEventListener('DOMContentLoaded', () => {
     // Auth check
     firebase.auth().onAuthStateChanged(user => {
-      console.log('Auth state changed:', user ? user.email : 'null');
       if (!user) {
         window.location.href = 'index.html';
         return;
       }
 
-      // Populate user info in avatar dropdown
+      // Populate user info
       const userName = user.displayName || 'User';
       const userEmail = user.email;
       const userUID = user.uid;
-
       document.getElementById('user-name').innerText = userName;
       document.getElementById('user-email').innerText = userEmail;
       document.getElementById('user-uid').innerText = `UID: ${userUID}`;
 
-      // Set avatar initial (first letter or 'U')
       const avatarBtn = document.getElementById('avatarBtn');
-      const initial = userName.charAt(0).toUpperCase();
-      avatarBtn.innerText = initial;
+      avatarBtn.innerText = userName.charAt(0).toUpperCase();
 
-      // Load notes after user is confirmed
       loadNotes();
     });
 
-    // Elements
+    let allNotes = [];
+    let unsubscribe = null;
     const notesListEl = document.getElementById('notesList');
     const searchToggle = document.getElementById('searchToggleBtn');
     const searchContainer = document.getElementById('searchContainer');
     const searchInput = document.getElementById('searchInput');
-    let allNotes = [];
-    let unsubscribe = null;
 
     function loadNotes() {
       const user = firebase.auth().currentUser;
-      if (!user) {
-        console.warn('loadNotes called without user');
-        return;
-      }
-      console.log('Loading notes for user:', user.uid);
+      if (!user) return;
       if (unsubscribe) unsubscribe();
       notesListEl.innerHTML = '<div class="loading">Loading your notes...</div>';
       unsubscribe = db.collection('notes')
         .where('userId', '==', user.uid)
         .orderBy('updatedAt', 'desc')
         .onSnapshot(snapshot => {
-          console.log(`Got ${snapshot.size} notes for user ${user.email}`);
-          if (snapshot.empty) {
-            notesListEl.innerHTML = '<div class="empty-message"><i class="fas fa-sticky-note"></i> No notes yet. Tap + to create one.</div>';
-            allNotes = [];
-            return;
-          }
-          allNotes = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
+          allNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           renderNotes();
         }, error => {
-          console.error('Error loading notes:', error);
-          notesListEl.innerHTML = `<div class="empty-message">Error loading notes: ${error.message}</div>`;
+          notesListEl.innerHTML = `<div class="empty-message">Error: ${error.message}</div>`;
         });
     }
 
     function renderNotes(filter = '') {
       let filtered = allNotes;
-      if (filter.trim() !== '') {
+      if (filter.trim()) {
         const term = filter.toLowerCase();
         filtered = allNotes.filter(n => 
-          (n.title && n.title.toLowerCase().includes(term)) || 
+          (n.title && n.title.toLowerCase().includes(term)) ||
           (n.content && n.content.toLowerCase().includes(term))
         );
       }
@@ -345,31 +407,17 @@
           <div class="note-preview">${escapeHtml((note.content || '').substring(0, 120))}${(note.content || '').length > 120 ? '…' : ''}</div>
         </div>
       `).join('');
-      // attach delete events
       document.querySelectorAll('.delete-note').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const id = btn.dataset.id;
-          if (confirm('Delete this note?')) {
-            db.collection('notes').doc(id).delete()
-              .then(() => console.log('Note deleted:', id))
-              .catch(console.error);
-          }
+          if (confirm('Delete this note?')) db.collection('notes').doc(id).delete();
         });
       });
     }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-      });
-    }
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
 
-    // Search toggle
     searchToggle.addEventListener('click', () => {
       if (searchContainer.style.display === 'none' || !searchContainer.style.display) {
         searchContainer.style.display = 'block';
@@ -380,31 +428,70 @@
         renderNotes();
       }
     });
-    searchInput.addEventListener('input', (e) => renderNotes(e.target.value));
+    searchInput.addEventListener('input', e => renderNotes(e.target.value));
 
     // Avatar dropdown
     const avatarBtn = document.getElementById('avatarBtn');
     const avatarDropdown = document.getElementById('avatarDropdown');
     function closeAvatarDropdown() { avatarDropdown.style.display = 'none'; }
-    function toggleAvatarDropdown(e) {
-      e.stopPropagation();
-      avatarDropdown.style.display = avatarDropdown.style.display === 'block' ? 'none' : 'block';
-    }
+    function toggleAvatarDropdown(e) { e.stopPropagation(); avatarDropdown.style.display = avatarDropdown.style.display === 'block' ? 'none' : 'block'; }
     avatarBtn.addEventListener('click', toggleAvatarDropdown);
-    document.addEventListener('click', (e) => {
-      if (!avatarBtn.contains(e.target) && !avatarDropdown.contains(e.target)) closeAvatarDropdown();
-    });
+    document.addEventListener('click', (e) => { if (!avatarBtn.contains(e.target) && !avatarDropdown.contains(e.target)) closeAvatarDropdown(); });
     avatarDropdown.addEventListener('click', e => e.stopPropagation());
 
-    // Change password and logout actions
-    document.getElementById('changePasswordOption').addEventListener('click', () => {
-      alert('🔐 Change password – this would open a password reset form.');
-      closeAvatarDropdown();
+    // CHANGE PASSWORD LOGIC
+    const modal = document.getElementById('changePwdModal');
+    const currentPwd = document.getElementById('currentPwd');
+    const newPwd = document.getElementById('newPwd');
+    const confirmPwd = document.getElementById('confirmPwd');
+    const modalMsg = document.getElementById('modalMessage');
+
+    function openModal() { modal.classList.add('active'); modalMsg.innerText = ''; currentPwd.value = ''; newPwd.value = ''; confirmPwd.value = ''; }
+    function closeModal() { modal.classList.remove('active'); }
+
+    document.getElementById('changePasswordOption').addEventListener('click', () => { closeAvatarDropdown(); openModal(); });
+    document.getElementById('cancelChangePwd').addEventListener('click', closeModal);
+
+    document.getElementById('confirmChangePwd').addEventListener('click', async () => {
+      const cur = currentPwd.value.trim();
+      const newPw = newPwd.value.trim();
+      const conf = confirmPwd.value.trim();
+      if (!cur || !newPw || !conf) {
+        modalMsg.innerText = 'All fields are required';
+        return;
+      }
+      if (newPw.length < 6) {
+        modalMsg.innerText = 'New password must be at least 6 characters';
+        return;
+      }
+      if (newPw !== conf) {
+        modalMsg.innerText = 'New passwords do not match';
+        return;
+      }
+
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        modalMsg.innerText = 'No user signed in';
+        return;
+      }
+
+      // Re-authenticate
+      const credential = firebase.auth.EmailAuthProvider.credential(user.email, cur);
+      try {
+        await user.reauthenticateWithCredential(credential);
+        await user.updatePassword(newPw);
+        modalMsg.innerText = 'Password updated successfully!';
+        modalMsg.style.color = '#2c6e2c';
+        setTimeout(closeModal, 1500);
+      } catch (error) {
+        console.error('Change password error:', error);
+        modalMsg.innerText = error.message;
+        modalMsg.style.color = '#ef4444';
+      }
     });
+
     document.getElementById('logoutOption').addEventListener('click', () => {
-      firebase.auth().signOut().then(() => {
-        window.location.href = 'index.html';
-      });
+      firebase.auth().signOut().then(() => window.location.href = 'index.html');
     });
   });
 </script>

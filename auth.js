@@ -154,6 +154,31 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // FORGOT PASSWORD FUNCTIONALITY
+        const forgotLink = document.getElementById('forgotPasswordLink');
+        if (forgotLink) {
+            forgotLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                const emailInput = document.getElementById('login-email');
+                const email = emailInput?.value.trim();
+                
+                if (!email) {
+                    showMessage('Please enter your email address first', 'error');
+                    emailInput?.focus();
+                    return;
+                }
+                
+                firebase.auth().sendPasswordResetEmail(email)
+                    .then(() => {
+                        showMessage('Password reset email sent! Check your inbox.', 'success');
+                    })
+                    .catch((error) => {
+                        console.error('Reset error:', error);
+                        showMessage(error.message, 'error');
+                    });
+            });
+        }
+        
         // Helper function to show messages
         function showMessage(text, type) {
             if (messageDiv) {
