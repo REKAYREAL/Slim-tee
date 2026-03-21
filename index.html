@@ -79,7 +79,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.04), 0 0 0 1px #e2e8f0;
     }
     .form-panel { display: none; }
-    .form-panel.active-panel { display: block; animation: fadeIn 0.25s ease; }
+    .form-panel.active { display: block; animation: fadeIn 0.25s ease; }   /* Changed from active-panel to active */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
@@ -192,7 +192,7 @@
   <div id="message" class="message"></div>
 
   <!-- Login form -->
-  <div id="login-form" class="form-panel active-panel">
+  <div id="login-form" class="form-panel active">
     <div class="input-group">
       <div class="input-label"><i class="fas fa-envelope"></i><span>Email</span></div>
       <input type="email" id="login-email" class="input-field" placeholder="hello@example.com" required>
