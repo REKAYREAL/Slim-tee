@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Add new note</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+    body {
+      background: #eef2f5;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .note-card {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .card-inner {
+      padding: 2rem 2rem 2rem 2rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .title-input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      font-size: 1rem;
+      font-family: inherit;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-weight: 500;
+    }
+    .title-input::placeholder { color: #8f9bb3; }
+    .note-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .note-textarea {
+      width: 100%;
+      flex: 1;
+      padding: 1rem;
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.5;
+      background: transparent;
+      resize: vertical;
+      border: none;
+      outline: none;
+    }
+    .circle-btn {
+      position: absolute;
+      top: 1.25rem;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 20;
+      border: none;
+    }
+    .circle-btn:hover { background: rgba(0, 0, 0, 0.08); }
+    .back-circle { left: 1.25rem; }
+    .menu-circle { right: 1.25rem; }
+    .menu-icon {
+      width: 18px;
+      height: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .menu-icon span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background-color: #3c4a5c;
+      border-radius: 2px;
+    }
+    .back-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: #3c4a5c;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    .bg-palette {
+      position: absolute;
+      top: 70px;
+      right: 1.25rem;
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(8px);
+      border-radius: 28px;
+      padding: 12px 16px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+      display: flex;
+      gap: 14px;
+      z-index: 25;
+    }
+    .bg-palette.hidden { display: none; }
+    .color-swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.1s;
+      border: none;
+    }
+    .color-swatch:hover { transform: scale(1.08); }
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(30,41,59,0.85);
+      backdrop-filter: blur(12px);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      z-index: 30;
+    }
+    .toast-msg.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="note-card" id="noteCard">
+  <div class="circle-btn back-circle" id="backBtn">
+    <div class="back-icon"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></div>
+  </div>
+  <div class="circle-btn menu-circle" id="menuBtn">
+    <div class="menu-icon"><span></span><span></span><span></span></div>
+  </div>
+  <div class="bg-palette hidden" id="colorPalette">
+    <div class="color-swatch" data-bg="#FFFFFF" style="background:#FFFFFF; box-shadow:0 0 0 1px #e2e8f0 inset;"></div>
+    <div class="color-swatch" data-bg="#FFF9EF" style="background:#FFF9EF;"></div>
+    <div class="color-swatch" data-bg="#F0F7FF" style="background:#F0F7FF;"></div>
+    <div class="color-swatch" data-bg="#F5F3F0" style="background:#F5F3F0;"></div>
+    <div class="color-swatch" data-bg="#F1F5F9" style="background:#F1F5F9;"></div>
+  </div>
+
+  <div class="card-inner">
+    <input type="text" class="title-input" id="noteTitle" placeholder="Title">
+    <div class="note-area">
+      <textarea class="note-textarea" id="noteContent" placeholder="Note something down...."></textarea>
+    </div>
+  </div>
+  <div id="toastMsg" class="toast-msg"></div>
+</div>
+
+<script>
+  // Auth check
+  if (!sessionStorage.getItem('isLoggedIn')) {
+    window.location.href = 'login.html';
+  }
+
+  const noteCard = document.getElementById('noteCard');
+  const menuBtn = document.getElementById('menuBtn');
+  const backBtn = document.getElementById('backBtn');
+  const colorPalette = document.getElementById('colorPalette');
+  const toast = document.getElementById('toastMsg');
+
+  let paletteVisible = false;
+
+  function showPalette(show) {
+    if (show) {
+      colorPalette.classList.remove('hidden');
+      paletteVisible = true;
+    } else {
+      colorPalette.classList.add('hidden');
+      paletteVisible = false;
+    }
+  }
+
+  function togglePalette() { showPalette(!paletteVisible); }
+
+  function setNoteBackground(color) {
+    if (color) noteCard.style.backgroundColor = color;
+  }
+
+  document.querySelectorAll('.color-swatch').forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      setNoteBackground(swatch.getAttribute('data-bg'));
+      showPalette(false);
+    });
+  });
+
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePalette();
+  });
+  document.addEventListener('click', (e) => {
+    if (paletteVisible && !colorPalette.contains(e.target) && !menuBtn.contains(e.target)) {
+      showPalette(false);
+    }
+  });
+  colorPalette.addEventListener('click', e => e.stopPropagation());
+
+  // Save note and go back
+  function saveAndGoBack() {
+    const title = document.getElementById('noteTitle').value.trim();
+    const content = document.getElementById('noteContent').value.trim();
+    if (title === '' && content === '') {
+      // nothing to save, just go back
+      window.location.href = 'notes.html';
+      return;
+    }
+    const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+    const newNote = {
+      id: Date.now(),
+      title: title || 'Untitled',
+      content: content,
+      createdAt: new Date().toISOString()
+    };
+    notes.unshift(newNote); // newest first
+    localStorage.setItem('notes', JSON.stringify(notes));
+
+    toast.textContent = '✓ Note saved';
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+      window.location.href = 'notes.html';
+    }, 400);
+  }
+
+  backBtn.addEventListener('click', saveAndGoBack);
+  // also allow Escape? Not needed, but back button is main action.
+</script>
+</body>
+</html>

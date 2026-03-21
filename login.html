@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Notes — Sign In / Sign Up</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #b4b4b4;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .auth-card {
+      background: #ffffff;
+      border-radius: 1.5rem;
+      padding: 2rem 1.75rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.02);
+      border: 1px solid #eef2f8;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .auth-icon {
+      font-size: 2.6rem;
+      color: #5b6e8c;
+      background: #f8fafc;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 60px;
+      margin: 0 auto 1rem auto;
+    }
+
+    .auth-title {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .tab-container {
+      display: flex;
+      gap: 0.5rem;
+      background: #f8fafc;
+      border-radius: 60px;
+      padding: 0.25rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 0.7rem 0;
+      border-radius: 60px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #5b6e8c;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn i {
+      margin-right: 0.4rem;
+    }
+
+    .tab-btn.active {
+      background: #ffffff;
+      color: #1e293b;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 0 0 1px #e2e8f0;
+    }
+
+    .form-panel {
+      display: none;
+    }
+
+    .form-panel.active-panel {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .input-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .input-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .input-field:focus {
+      border-color: #94a3b8;
+      box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.1);
+    }
+
+    .login-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .checkbox input {
+      accent-color: #5b6e8c;
+    }
+
+    .forgot-link {
+      color: #5b6e8c;
+      text-decoration: none;
+    }
+
+    .forgot-link:hover {
+      color: #1e40af;
+      text-decoration: underline;
+    }
+
+    .terms-group {
+      margin: 1rem 0 1.5rem 0;
+    }
+
+    .terms-link {
+      color: #1e293b;
+      font-weight: 500;
+      text-decoration: none;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .auth-btn {
+      background: #f8fafc;
+      border: none;
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 60px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 1.5rem;
+      border: 1px solid #eef2f8;
+    }
+
+    .auth-btn:hover {
+      background: #eef2ff;
+      color: #1e40af;
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-icon"><i class="fas fa-pen-fancy"></i></div>
+    <h1 class="auth-title">NOTES</h1>
+  </div>
+
+  <div class="tab-container">
+    <button class="tab-btn active" id="tabLoginBtn"><i class="fas fa-arrow-right-to-bracket"></i> Sign in</button>
+    <button class="tab-btn" id="tabSignupBtn"><i class="fas fa-user-plus"></i> Sign up</button>
+  </div>
+
+  <div id="loginPanel" class="form-panel active-panel">
+    <form id="loginForm">
+      <div class="input-group">
+        <div class="input-label"><i class="fas fa-envelope"></i><span>Email or username</span></div>
+        <input type="text" class="input-field" id="loginEmail" placeholder="hello@example.com" required>
+      </div>
+      <div class="input-group">
+        <div class="input-label"><i class="fas fa-lock"></i><span>Password</span></div>
+        <input type="password" class="input-field" id="loginPassword" placeholder="••••••••" required>
+      </div>
+      <div class="login-options">
+        <label class="checkbox"><input type="checkbox"> Remember me</label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+      <button type="submit" class="auth-btn"><i class="fas fa-arrow-right-to-bracket"></i> Log in</button>
+    </form>
+  </div>
+
+  <div id="signupPanel" class="form-panel">
+    <form id="signupForm">
+      <div class="input-group">
+        <div class="input-label"><i class="fas fa-user"></i><span>Full name</span></div>
+        <input type="text" class="input-field" id="signupName" placeholder="Alex Johnson" required>
+      </div>
+      <div class="input-group">
+        <div class="input-label"><i class="fas fa-envelope"></i><span>Email address</span></div>
+        <input type="email" class="input-field" id="signupEmail" placeholder="hello@example.com" required>
+      </div>
+      <div class="input-group">
+        <div class="input-label"><i class="fas fa-lock"></i><span>Password</span></div>
+        <input type="password" class="input-field" id="signupPassword" placeholder="Create a strong password" required>
+      </div>
+      <div class="input-group">
+        <div class="input-label"><i class="fas fa-check-circle"></i><span>Confirm password</span></div>
+        <input type="password" class="input-field" id="signupConfirm" placeholder="Repeat your password" required>
+      </div>
+      <div class="terms-group">
+        <label class="checkbox"><input type="checkbox" required> I agree to the <a href="#" class="terms-link">Terms</a> and <a href="#" class="terms-link">Privacy</a></label>
+      </div>
+      <button type="submit" class="auth-btn"><i class="fas fa-user-check"></i> Sign up</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const loginBtn = document.getElementById('tabLoginBtn');
+    const signupBtn = document.getElementById('tabSignupBtn');
+    const loginPanel = document.getElementById('loginPanel');
+    const signupPanel = document.getElementById('signupPanel');
+
+    function setActiveTab(active) {
+      if (active === 'login') {
+        loginBtn.classList.add('active');
+        signupBtn.classList.remove('active');
+        loginPanel.classList.add('active-panel');
+        signupPanel.classList.remove('active-panel');
+      } else {
+        signupBtn.classList.add('active');
+        loginBtn.classList.remove('active');
+        signupPanel.classList.add('active-panel');
+        loginPanel.classList.remove('active-panel');
+      }
+    }
+
+    loginBtn.addEventListener('click', () => setActiveTab('login'));
+    signupBtn.addEventListener('click', () => setActiveTab('signup'));
+
+    // Simple authentication: any non-empty fields succeed
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pwd = document.getElementById('loginPassword').value.trim();
+      if (email && pwd) {
+        sessionStorage.setItem('isLoggedIn', 'true');
+        sessionStorage.setItem('user', email);
+        window.location.href = 'notes.html';
+      } else {
+        alert('Please fill in both fields');
+      }
+    }
+
+    function handleSignup(e) {
+      e.preventDefault();
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const pwd = document.getElementById('signupPassword').value.trim();
+      const confirm = document.getElementById('signupConfirm').value.trim();
+      if (name && email && pwd && confirm) {
+        if (pwd !== confirm) {
+          alert('Passwords do not match');
+          return;
+        }
+        sessionStorage.setItem('isLoggedIn', 'true');
+        sessionStorage.setItem('user', email);
+        window.location.href = 'notes.html';
+      } else {
+        alert('Please fill all fields');
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    document.getElementById('signupForm').addEventListener('submit', handleSignup);
+  })();
+</script>
+</body>
+</html>
