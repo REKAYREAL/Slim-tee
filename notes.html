@@ -220,7 +220,7 @@
       color: #94a3b8;
     }
 
-    /* Change Password Modal */
+    /* Modal (shared style for both modals) */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -305,6 +305,7 @@
               <div class="user-email" id="user-email">Loading...</div>
               <div class="user-uid" id="user-uid">Loading...</div>
             </div>
+            <button class="dropdown-item" id="editNameOption"><i class="fas fa-user-edit"></i>Edit name</button>
             <button class="dropdown-item" id="changePasswordOption"><i class="fas fa-key"></i>Change password</button>
             <button class="dropdown-item" id="logoutOption"><i class="fas fa-sign-out-alt"></i>Logout</button>
           </div>
@@ -337,6 +338,19 @@
   </div>
 </div>
 
+<!-- Edit Name Modal -->
+<div id="editNameModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3>Edit your name</h3>
+    <input type="text" id="newName" placeholder="Your full name" autocomplete="off">
+    <div id="editNameMessage" class="modal-message"></div>
+    <div class="modal-buttons">
+      <button class="cancel-btn" id="cancelEditName">Cancel</button>
+      <button class="confirm-btn" id="confirmEditName">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -352,6 +366,12 @@
       }
 
       // Populate user info
+      updateUserInfo(user);
+
+      loadNotes();
+    });
+
+    function updateUserInfo(user) {
       const userName = user.displayName || 'User';
       const userEmail = user.email;
       const userUID = user.uid;
@@ -361,9 +381,7 @@
 
       const avatarBtn = document.getElementById('avatarBtn');
       avatarBtn.innerText = userName.charAt(0).toUpperCase();
-
-      loadNotes();
-    });
+    }
 
     let allNotes = [];
     let unsubscribe = null;
@@ -414,7 +432,6 @@
       // Add click event to navigate to edit page (except when clicking delete button)
       document.querySelectorAll('.note-entry').forEach(entry => {
         entry.addEventListener('click', (e) => {
-          // If the click target is the delete button or its child, don't navigate
           if (e.target.closest('.delete-note')) return;
           const noteId = entry.dataset.id;
           if (noteId) {
@@ -456,17 +473,17 @@
     avatarDropdown.addEventListener('click', e => e.stopPropagation());
 
     // CHANGE PASSWORD LOGIC
-    const modal = document.getElementById('changePwdModal');
+    const changePwdModal = document.getElementById('changePwdModal');
     const currentPwd = document.getElementById('currentPwd');
     const newPwd = document.getElementById('newPwd');
     const confirmPwd = document.getElementById('confirmPwd');
     const modalMsg = document.getElementById('modalMessage');
 
-    function openModal() { modal.classList.add('active'); modalMsg.innerText = ''; currentPwd.value = ''; newPwd.value = ''; confirmPwd.value = ''; }
-    function closeModal() { modal.classList.remove('active'); }
+    function openChangePwdModal() { changePwdModal.classList.add('active'); modalMsg.innerText = ''; currentPwd.value = ''; newPwd.value = ''; confirmPwd.value = ''; }
+    function closeChangePwdModal() { changePwdModal.classList.remove('active'); }
 
-    document.getElementById('changePasswordOption').addEventListener('click', () => { closeAvatarDropdown(); openModal(); });
-    document.getElementById('cancelChangePwd').addEventListener('click', closeModal);
+    document.getElementById('changePasswordOption').addEventListener('click', () => { closeAvatarDropdown(); openChangePwdModal(); });
+    document.getElementById('cancelChangePwd').addEventListener('click', closeChangePwdModal);
 
     document.getElementById('confirmChangePwd').addEventListener('click', async () => {
       const cur = currentPwd.value.trim();
@@ -491,18 +508,60 @@
         return;
       }
 
-      // Re-authenticate
       const credential = firebase.auth.EmailAuthProvider.credential(user.email, cur);
       try {
         await user.reauthenticateWithCredential(credential);
         await user.updatePassword(newPw);
         modalMsg.innerText = 'Password updated successfully!';
         modalMsg.style.color = '#2c6e2c';
-        setTimeout(closeModal, 1500);
+        setTimeout(closeChangePwdModal, 1500);
       } catch (error) {
         console.error('Change password error:', error);
         modalMsg.innerText = error.message;
         modalMsg.style.color = '#ef4444';
+      }
+    });
+
+    // EDIT NAME LOGIC
+    const editNameModal = document.getElementById('editNameModal');
+    const newNameInput = document.getElementById('newName');
+    const editNameMessage = document.getElementById('editNameMessage');
+
+    function openEditNameModal() {
+      const currentName = firebase.auth().currentUser?.displayName || '';
+      newNameInput.value = currentName;
+      editNameMessage.innerText = '';
+      editNameModal.classList.add('active');
+    }
+    function closeEditNameModal() { editNameModal.classList.remove('active'); }
+
+    document.getElementById('editNameOption').addEventListener('click', () => { closeAvatarDropdown(); openEditNameModal(); });
+    document.getElementById('cancelEditName').addEventListener('click', closeEditNameModal);
+
+    document.getElementById('confirmEditName').addEventListener('click', async () => {
+      const newName = newNameInput.value.trim();
+      if (!newName) {
+        editNameMessage.innerText = 'Name cannot be empty';
+        return;
+      }
+
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        editNameMessage.innerText = 'No user signed in';
+        return;
+      }
+
+      try {
+        await user.updateProfile({ displayName: newName });
+        editNameMessage.innerText = 'Name updated successfully!';
+        editNameMessage.style.color = '#2c6e2c';
+        // Refresh user info in UI
+        updateUserInfo(user);
+        setTimeout(closeEditNameModal, 1200);
+      } catch (error) {
+        console.error('Edit name error:', error);
+        editNameMessage.innerText = error.message;
+        editNameMessage.style.color = '#ef4444';
       }
     });
 
