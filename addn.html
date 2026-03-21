@@ -184,13 +184,49 @@
 <script>
   // Wait for auth to be ready
   let currentUser = null;
+  let noteId = null; // will hold the ID if editing
+
+  // Get note ID from URL if present
+  const urlParams = new URLSearchParams(window.location.search);
+  noteId = urlParams.get('id');
+
   firebase.auth().onAuthStateChanged(user => {
     if (!user) {
       window.location.href = 'index.html';
     } else {
       currentUser = user;
+      // If editing, load the note
+      if (noteId) {
+        loadNoteForEditing(noteId);
+      }
     }
   });
+
+  // Load existing note data into fields (only if the note belongs to current user)
+  async function loadNoteForEditing(id) {
+    if (!currentUser) return;
+    try {
+      const doc = await db.collection('notes').doc(id).get();
+      if (!doc.exists) {
+        showToast('Note not found', true);
+        setTimeout(() => window.location.href = 'notes.html', 1500);
+        return;
+      }
+      const data = doc.data();
+      if (data.userId !== currentUser.uid) {
+        showToast('You do not have permission to edit this note', true);
+        setTimeout(() => window.location.href = 'notes.html', 1500);
+        return;
+      }
+      document.getElementById('noteTitle').value = data.title || '';
+      document.getElementById('noteContent').value = data.content || '';
+      // Optionally restore background if stored (not stored in this version)
+    } catch (err) {
+      console.error('Error loading note:', err);
+      showToast('Error loading note', true);
+      setTimeout(() => window.location.href = 'notes.html', 1500);
+    }
+  }
 
   // Background picker (unchanged)
   const noteCard = document.getElementById('noteCard');
@@ -235,10 +271,15 @@
   });
   colorPalette.addEventListener('click', e => e.stopPropagation());
 
-  // Save note to Firestore and go back
-  function saveAndGoBack() {
+  function showToast(msg, isError = false) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  // Save note: either create new or update existing
+  async function saveAndGoBack() {
     if (!currentUser) {
-      // Still not authenticated? redirect
       window.location.href = 'index.html';
       return;
     }
@@ -255,25 +296,27 @@
       userId: currentUser.uid,
       title: title || 'Untitled',
       content: content,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    db.collection('notes').add(noteData)
-      .then(() => {
-        toast.textContent = '✓ Note saved';
-        toast.classList.add('show');
-        setTimeout(() => {
-          toast.classList.remove('show');
-          window.location.href = 'notes.html';
-        }, 400);
-      })
-      .catch(error => {
-        console.error('Error saving note:', error);
-        toast.textContent = 'Error saving note';
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
-      });
+    try {
+      if (noteId) {
+        // Update existing note (preserve createdAt)
+        await db.collection('notes').doc(noteId).update(noteData);
+        showToast('✓ Note updated');
+      } else {
+        // Create new note
+        noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        await db.collection('notes').add(noteData);
+        showToast('✓ Note saved');
+      }
+      setTimeout(() => {
+        window.location.href = 'notes.html';
+      }, 400);
+    } catch (error) {
+      console.error('Error saving note:', error);
+      showToast('Error saving note', true);
+    }
   }
 
   backBtn.addEventListener('click', saveAndGoBack);

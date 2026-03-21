@@ -179,6 +179,7 @@
       border: 1px solid #eef2f8;
       transition: all 0.2s ease;
       position: relative;
+      cursor: pointer;
     }
     .note-entry:hover { border-color: #cbdff2; transform: translateY(-1px); }
     .note-title {
@@ -202,6 +203,8 @@
       cursor: pointer;
       font-size: 1.1rem;
       transition: color 0.2s;
+      z-index: 2;
+      position: relative;
     }
     .delete-note:hover { color: #ef4444; }
     .empty-message {
@@ -399,7 +402,7 @@
         return;
       }
       notesListEl.innerHTML = filtered.map(note => `
-        <div class="note-entry">
+        <div class="note-entry" data-id="${note.id}">
           <div class="note-title">
             <span>${escapeHtml(note.title) || 'Untitled'}</span>
             <button class="delete-note" data-id="${note.id}"><i class="fas fa-trash-alt"></i></button>
@@ -407,6 +410,19 @@
           <div class="note-preview">${escapeHtml((note.content || '').substring(0, 120))}${(note.content || '').length > 120 ? '…' : ''}</div>
         </div>
       `).join('');
+
+      // Add click event to navigate to edit page (except when clicking delete button)
+      document.querySelectorAll('.note-entry').forEach(entry => {
+        entry.addEventListener('click', (e) => {
+          // If the click target is the delete button or its child, don't navigate
+          if (e.target.closest('.delete-note')) return;
+          const noteId = entry.dataset.id;
+          if (noteId) {
+            window.location.href = `addn.html?id=${noteId}`;
+          }
+        });
+      });
+
       document.querySelectorAll('.delete-note').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
