@@ -256,11 +256,35 @@
     .modal-card input {
       width: 100%;
       margin-bottom: 1rem;
-      padding: 0.75rem;
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
       border: 1px solid #e2e8f0;
       border-radius: 1rem;
       font-family: inherit;
     }
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    .password-wrapper input {
+      margin-bottom: 0;
+      width: 100%;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      font-size: 1.1rem;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+    .toggle-password:hover { color: #5b6e8c; }
     .modal-buttons {
       display: flex;
       gap: 0.75rem;
@@ -327,9 +351,24 @@
 <div id="changePwdModal" class="modal-overlay">
   <div class="modal-card">
     <h3>Change password</h3>
-    <input type="password" id="currentPwd" placeholder="Current password" autocomplete="off">
-    <input type="password" id="newPwd" placeholder="New password (min 6 chars)">
-    <input type="password" id="confirmPwd" placeholder="Confirm new password">
+    <div class="password-wrapper">
+      <input type="password" id="currentPwd" placeholder="Current password" autocomplete="off">
+      <button type="button" class="toggle-password" data-target="currentPwd">
+        <i class="far fa-eye-slash"></i>
+      </button>
+    </div>
+    <div class="password-wrapper">
+      <input type="password" id="newPwd" placeholder="New password (min 6 chars)">
+      <button type="button" class="toggle-password" data-target="newPwd">
+        <i class="far fa-eye-slash"></i>
+      </button>
+    </div>
+    <div class="password-wrapper">
+      <input type="password" id="confirmPwd" placeholder="Confirm new password">
+      <button type="button" class="toggle-password" data-target="confirmPwd">
+        <i class="far fa-eye-slash"></i>
+      </button>
+    </div>
     <div id="modalMessage" class="modal-message"></div>
     <div class="modal-buttons">
       <button class="cancel-btn" id="cancelChangePwd">Cancel</button>
@@ -555,7 +594,6 @@
         await user.updateProfile({ displayName: newName });
         editNameMessage.innerText = 'Name updated successfully!';
         editNameMessage.style.color = '#2c6e2c';
-        // Refresh user info in UI
         updateUserInfo(user);
         setTimeout(closeEditNameModal, 1200);
       } catch (error) {
@@ -567,6 +605,21 @@
 
     document.getElementById('logoutOption').addEventListener('click', () => {
       firebase.auth().signOut().then(() => window.location.href = 'index.html');
+    });
+
+    // Password toggle for change password modal
+    document.querySelectorAll('#changePwdModal .toggle-password').forEach(button => {
+      button.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input) {
+          const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+          input.setAttribute('type', type);
+          const icon = this.querySelector('i');
+          icon.classList.toggle('fa-eye-slash');
+          icon.classList.toggle('fa-eye');
+        }
+      });
     });
   });
 </script>

@@ -94,9 +94,14 @@
       color: #1e293b;
       margin-bottom: 0.5rem;
     }
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
     .input-field {
       width: 100%;
-      padding: 0.85rem 1rem;
+      padding: 0.85rem 2.5rem 0.85rem 1rem;
       border: 1px solid #e2e8f0;
       border-radius: 1rem;
       font-size: 0.95rem;
@@ -108,6 +113,19 @@
       border-color: #94a3b8;
       box-shadow: 0 0 0 3px rgba(100,116,139,0.1);
     }
+    .toggle-password {
+      position: absolute;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      font-size: 1.1rem;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+    .toggle-password:hover { color: #5b6e8c; }
     .login-options {
       display: flex;
       justify-content: space-between;
@@ -150,7 +168,7 @@
       gap: 0.6rem;
       cursor: pointer;
       transition: all 0.2s ease;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       border: 1px solid #eef2f8;
     }
     .auth-btn:hover {
@@ -158,6 +176,16 @@
       color: #1e40af;
       transform: scale(0.98);
     }
+    .resend-btn {
+      background: transparent;
+      border: none;
+      color: #5b6e8c;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .resend-btn:hover { color: #1e40af; }
     .message {
       padding: 0.75rem;
       border-radius: 0.75rem;
@@ -175,6 +203,10 @@
       background: #ffe6e6;
       color: #b33;
       border: 1px solid #ffcccc;
+    }
+    .verification-message {
+      margin-top: 1rem;
+      text-align: center;
     }
   </style>
 </head>
@@ -200,13 +232,21 @@
     </div>
     <div class="input-group">
       <div class="input-label"><i class="fas fa-lock"></i><span>Password</span></div>
-      <input type="password" id="login-password" class="input-field" placeholder="••••••••" required>
+      <div class="password-wrapper">
+        <input type="password" id="login-password" class="input-field" placeholder="••••••••" required>
+        <button type="button" class="toggle-password" data-target="login-password">
+          <i class="far fa-eye-slash"></i>
+        </button>
+      </div>
     </div>
     <div class="login-options">
       <label class="checkbox"><input type="checkbox"> Remember me</label>
       <a href="#" id="forgotPasswordLink" class="forgot-link">Forgot password?</a>
     </div>
     <button type="button" id="login-btn" class="auth-btn"><i class="fas fa-arrow-right-to-bracket"></i> Log in</button>
+    <div id="verificationContainer" style="display: none;" class="verification-message">
+      <button id="resendVerificationBtn" class="resend-btn">Resend verification email</button>
+    </div>
   </div>
 
   <!-- Signup form -->
@@ -221,7 +261,12 @@
     </div>
     <div class="input-group">
       <div class="input-label"><i class="fas fa-lock"></i><span>Password</span></div>
-      <input type="password" id="signup-password" class="input-field" placeholder="Create a strong password" required>
+      <div class="password-wrapper">
+        <input type="password" id="signup-password" class="input-field" placeholder="Create a strong password" required>
+        <button type="button" class="toggle-password" data-target="signup-password">
+          <i class="far fa-eye-slash"></i>
+        </button>
+      </div>
     </div>
     <div class="terms-group">
       <label class="checkbox"><input type="checkbox" required> I agree to the <a href="#" class="terms-link">Terms</a> and <a href="#" class="terms-link">Privacy</a></label>
@@ -236,5 +281,21 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="auth.js"></script>
+<script>
+  // Password toggle functionality for login/signup
+  document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      if (input) {
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        const icon = this.querySelector('i');
+        icon.classList.toggle('fa-eye-slash');
+        icon.classList.toggle('fa-eye');
+      }
+    });
+  });
+</script>
 </body>
 </html>
