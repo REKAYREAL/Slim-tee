@@ -397,16 +397,22 @@
 <script src="firebase-config.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // Auth check
+    // Auth check with email verification
     firebase.auth().onAuthStateChanged(user => {
       if (!user) {
         window.location.href = 'index.html';
         return;
       }
+      if (!user.emailVerified) {
+        // Sign out unverified user and redirect to index
+        firebase.auth().signOut().then(() => {
+          window.location.href = 'index.html?verification=required';
+        });
+        return;
+      }
 
       // Populate user info
       updateUserInfo(user);
-
       loadNotes();
     });
 
