@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Add new note</title>
   <style>
+    /* (styles unchanged) */
     * {
       margin: 0;
       padding: 0;
@@ -180,13 +181,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
-<script src="auth.js"></script>
 <script>
-  // Wait for auth to be ready
   let currentUser = null;
-  let noteId = null; // will hold the ID if editing
+  let noteId = null;
 
-  // Get note ID from URL if present
   const urlParams = new URLSearchParams(window.location.search);
   noteId = urlParams.get('id');
 
@@ -195,14 +193,12 @@
       window.location.href = 'index.html';
     } else {
       currentUser = user;
-      // If editing, load the note
       if (noteId) {
         loadNoteForEditing(noteId);
       }
     }
   });
 
-  // Load existing note data into fields (only if the note belongs to current user)
   async function loadNoteForEditing(id) {
     if (!currentUser) return;
     try {
@@ -220,7 +216,6 @@
       }
       document.getElementById('noteTitle').value = data.title || '';
       document.getElementById('noteContent').value = data.content || '';
-      // Optionally restore background if stored (not stored in this version)
     } catch (err) {
       console.error('Error loading note:', err);
       showToast('Error loading note', true);
@@ -228,7 +223,7 @@
     }
   }
 
-  // Background picker (unchanged)
+  // Background picker
   const noteCard = document.getElementById('noteCard');
   const menuBtn = document.getElementById('menuBtn');
   const backBtn = document.getElementById('backBtn');
@@ -277,7 +272,6 @@
     setTimeout(() => toast.classList.remove('show'), 2000);
   }
 
-  // Save note: either create new or update existing
   async function saveAndGoBack() {
     if (!currentUser) {
       window.location.href = 'index.html';
@@ -287,7 +281,6 @@
     const title = document.getElementById('noteTitle').value.trim();
     const content = document.getElementById('noteContent').value.trim();
     if (title === '' && content === '') {
-      // nothing to save, just go back
       window.location.href = 'notes.html';
       return;
     }
@@ -301,11 +294,9 @@
 
     try {
       if (noteId) {
-        // Update existing note (preserve createdAt)
         await db.collection('notes').doc(noteId).update(noteData);
         showToast('✓ Note updated');
       } else {
-        // Create new note
         noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection('notes').add(noteData);
         showToast('✓ Note saved');

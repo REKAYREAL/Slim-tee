@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
+    /* (styles unchanged) */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: #b4b4b4;
@@ -220,7 +221,7 @@
       color: #94a3b8;
     }
 
-    /* Modal (shared style for both modals) */
+    /* Modal */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -404,14 +405,12 @@
         return;
       }
       if (!user.emailVerified) {
-        // Sign out unverified user and redirect to index
         firebase.auth().signOut().then(() => {
           window.location.href = 'index.html?verification=required';
         });
         return;
       }
 
-      // Populate user info
       updateUserInfo(user);
       loadNotes();
     });
@@ -423,7 +422,6 @@
       document.getElementById('user-name').innerText = userName;
       document.getElementById('user-email').innerText = userEmail;
       document.getElementById('user-uid').innerText = `UID: ${userUID}`;
-
       const avatarBtn = document.getElementById('avatarBtn');
       avatarBtn.innerText = userName.charAt(0).toUpperCase();
     }
@@ -474,7 +472,6 @@
         </div>
       `).join('');
 
-      // Add click event to navigate to edit page (except when clicking delete button)
       document.querySelectorAll('.note-entry').forEach(entry => {
         entry.addEventListener('click', (e) => {
           if (e.target.closest('.delete-note')) return;
@@ -517,7 +514,7 @@
     document.addEventListener('click', (e) => { if (!avatarBtn.contains(e.target) && !avatarDropdown.contains(e.target)) closeAvatarDropdown(); });
     avatarDropdown.addEventListener('click', e => e.stopPropagation());
 
-    // CHANGE PASSWORD LOGIC
+    // Change password modal
     const changePwdModal = document.getElementById('changePwdModal');
     const currentPwd = document.getElementById('currentPwd');
     const newPwd = document.getElementById('newPwd');
@@ -567,7 +564,7 @@
       }
     });
 
-    // EDIT NAME LOGIC
+    // Edit name modal
     const editNameModal = document.getElementById('editNameModal');
     const newNameInput = document.getElementById('newName');
     const editNameMessage = document.getElementById('editNameMessage');
