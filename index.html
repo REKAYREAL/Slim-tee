@@ -3,47 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Notes — Sign In / Sign Up</title>
+  <title>QuietNotes — A quiet place for your loud ideas</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      background: #b4b4b4;
+      background: #f5f7fb;
       font-family: 'Inter', system-ui, sans-serif;
-      min-height: 100vh;
+      color: #1e293b;
+      line-height: 1.5;
+    }
+
+    /* Container utility */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Navigation */
+    .navbar {
+      padding: 1.5rem 0;
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
-    .auth-card {
-      background: #ffffff;
-      border-radius: 1.5rem;
-      padding: 2rem 1.75rem;
-      width: 100%;
-      max-width: 440px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-      border: 1px solid #eef2f8;
-    }
-    .auth-header {
-      text-align: center;
-      margin-bottom: 1.75rem;
-    }
-    .auth-icon {
-      font-size: 2.6rem;
-      color: #5b6e8c;
-      background: #f8fafc;
-      width: 70px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 60px;
-      margin: 0 auto 1rem auto;
-    }
-    .auth-title {
-      font-size: 1.9rem;
+    .logo {
+      font-size: 1.8rem;
       font-weight: 700;
       letter-spacing: -0.02em;
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -51,251 +45,262 @@
       -webkit-background-clip: text;
       color: transparent;
     }
-    .tab-container {
-      display: flex;
-      gap: 0.5rem;
-      background: #f8fafc;
-      border-radius: 60px;
-      padding: 0.25rem;
-      margin-bottom: 1.75rem;
-    }
-    .tab-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      padding: 0.7rem 0;
-      border-radius: 60px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #5b6e8c;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s ease;
-    }
-    .tab-btn i { margin-right: 0.4rem; }
-    .tab-btn.active {
-      background: #ffffff;
-      color: #1e293b;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04), 0 0 0 1px #e2e8f0;
-    }
-    .form-panel { display: none; }
-    .form-panel.active { display: block; animation: fadeIn 0.25s ease; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .input-group { margin-bottom: 1.25rem; }
-    .input-label {
+    .nav-links {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 0.85rem;
+      gap: 2rem;
+    }
+    .nav-link {
+      text-decoration: none;
+      color: #5b6e8c;
       font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-link:hover {
       color: #1e293b;
+    }
+    .btn-login {
+      background: #1e293b;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-login:hover {
+      background: #0f172a;
+      transform: scale(0.96);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #e2e8f0;
+      color: #1e293b;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 5rem 0 4rem;
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #1e293b, #475569);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    .hero .tagline {
+      font-size: 1.25rem;
+      color: #5b6e8c;
+      max-width: 640px;
+      margin: 0 auto 2rem;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: #1e293b;
+      color: white;
+      padding: 0.8rem 2rem;
+      border-radius: 2rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-primary:hover {
+      background: #0f172a;
+      transform: scale(0.96);
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid #e2e8f0;
+      color: #1e293b;
+      padding: 0.8rem 2rem;
+      border-radius: 2rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    /* Features */
+    .features {
+      padding: 4rem 0;
+      background: #ffffff;
+      border-radius: 2rem;
+      margin: 2rem 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .features h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 3rem;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    .feature-card {
+      text-align: center;
+      padding: 1.5rem;
+      border-radius: 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      background: #ffffff;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.04);
+    }
+    .feature-icon {
+      font-size: 2.5rem;
+      color: #5b6e8c;
+      margin-bottom: 1rem;
+    }
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
       margin-bottom: 0.5rem;
     }
-    .password-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .input-field {
-      width: 100%;
-      padding: 0.85rem 2.5rem 0.85rem 1rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 1rem;
-      font-size: 0.95rem;
-      font-family: inherit;
-      transition: all 0.2s;
-      outline: none;
-    }
-    .input-field:focus {
-      border-color: #94a3b8;
-      box-shadow: 0 0 0 3px rgba(100,116,139,0.1);
-    }
-    .toggle-password {
-      position: absolute;
-      right: 0.75rem;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      padding: 0;
-      display: flex;
-      align-items: center;
-    }
-    .toggle-password:hover { color: #5b6e8c; }
-    .login-options {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      margin-bottom: 1.5rem;
-    }
-    .checkbox {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-    }
-    .checkbox input { accent-color: #5b6e8c; }
-    .forgot-link {
+    .feature-card p {
       color: #5b6e8c;
-      text-decoration: none;
-      cursor: pointer;
+      font-size: 0.95rem;
     }
-    .forgot-link:hover { color: #1e40af; text-decoration: underline; }
-    .terms-group { margin: 1rem 0 1.5rem 0; }
-    .terms-link {
-      color: #1e293b;
-      font-weight: 500;
-      text-decoration: none;
-      border-bottom: 1px solid #cbd5e1;
+
+    /* Social proof */
+    .social-proof {
+      text-align: center;
+      padding: 3rem 0;
     }
-    .auth-btn {
-      background: #f8fafc;
-      border: none;
-      width: 100%;
-      padding: 0.85rem;
-      border-radius: 60px;
+    .social-proof p {
       font-size: 1rem;
+      color: #5b6e8c;
+      margin-bottom: 0.5rem;
+    }
+    .social-proof .highlight {
+      font-size: 1.25rem;
       font-weight: 600;
       color: #1e293b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-bottom: 1rem;
-      border: 1px solid #eef2f8;
     }
-    .auth-btn:hover {
-      background: #eef2ff;
-      color: #1e40af;
-      transform: scale(0.98);
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid #eef2f8;
+      padding: 2rem 0;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.85rem;
     }
-    .resend-btn {
-      background: transparent;
-      border: none;
+    .footer a {
       color: #5b6e8c;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-      cursor: pointer;
-      text-decoration: underline;
+      text-decoration: none;
     }
-    .resend-btn:hover { color: #1e40af; }
-    .message {
-      padding: 0.75rem;
-      border-radius: 0.75rem;
-      margin-bottom: 1rem;
-      text-align: center;
-      font-size: 0.85rem;
-      display: none;
+    .footer a:hover {
+      color: #1e293b;
     }
-    .message.success {
-      background: #e6ffed;
-      color: #2c6e2c;
-      border: 1px solid #b2e0b2;
-    }
-    .message.error {
-      background: #ffe6e6;
-      color: #b33;
-      border: 1px solid #ffcccc;
-    }
-    .verification-message {
-      margin-top: 1rem;
-      text-align: center;
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1.5rem;
+      }
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+      .hero .tagline {
+        font-size: 1rem;
+      }
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+      .navbar {
+        flex-direction: column;
+        text-align: center;
+      }
+      .nav-links {
+        justify-content: center;
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-<div class="auth-card">
-  <div class="auth-header">
-    <div class="auth-icon"><i class="fas fa-pen-fancy"></i></div>
-    <h1 class="auth-title">NOTES</h1>
-  </div>
-
-  <div class="tab-container">
-    <button class="tab-btn active" id="login-tab"><i class="fas fa-arrow-right-to-bracket"></i> Sign in</button>
-    <button class="tab-btn" id="signup-tab"><i class="fas fa-user-plus"></i> Sign up</button>
-  </div>
-
-  <div id="message" class="message"></div>
-
-  <!-- Login form -->
-  <div id="login-form" class="form-panel active">
-    <div class="input-group">
-      <div class="input-label"><i class="fas fa-envelope"></i><span>Email</span></div>
-      <input type="email" id="login-email" class="input-field" placeholder="hello@example.com" required>
-    </div>
-    <div class="input-group">
-      <div class="input-label"><i class="fas fa-lock"></i><span>Password</span></div>
-      <div class="password-wrapper">
-        <input type="password" id="login-password" class="input-field" placeholder="••••••••" required>
-        <button type="button" class="toggle-password" data-target="login-password">
-          <i class="far fa-eye-slash"></i>
-        </button>
+  <div class="container">
+    <nav class="navbar">
+      <div class="logo">RKY NOTES</div>
+      <div class="nav-links">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="login.html" class="btn-login">Log in</a>
       </div>
-    </div>
-    <div class="login-options">
-      <label class="checkbox"><input type="checkbox"> Remember me</label>
-      <a href="#" id="forgotPasswordLink" class="forgot-link">Forgot password?</a>
-    </div>
-    <button type="button" id="login-btn" class="auth-btn"><i class="fas fa-arrow-right-to-bracket"></i> Log in</button>
-    <div id="verificationContainer" style="display: none;" class="verification-message">
-      <button id="resendVerificationBtn" class="resend-btn">Resend verification email</button>
-    </div>
-  </div>
+    </nav>
 
-  <!-- Signup form -->
-  <div id="signup-form" class="form-panel">
-    <div class="input-group">
-      <div class="input-label"><i class="fas fa-user"></i><span>Full name</span></div>
-      <input type="text" id="signup-name" class="input-field" placeholder="Alex Johnson" required>
-    </div>
-    <div class="input-group">
-      <div class="input-label"><i class="fas fa-envelope"></i><span>Email</span></div>
-      <input type="email" id="signup-email" class="input-field" placeholder="hello@example.com" required>
-    </div>
-    <div class="input-group">
-      <div class="input-label"><i class="fas fa-lock"></i><span>Password</span></div>
-      <div class="password-wrapper">
-        <input type="password" id="signup-password" class="input-field" placeholder="Create a strong password" required>
-        <button type="button" class="toggle-password" data-target="signup-password">
-          <i class="far fa-eye-slash"></i>
-        </button>
-      </div>
-    </div>
-    <div class="terms-group">
-      <label class="checkbox"><input type="checkbox" required> I agree to the <a href="#" class="terms-link">Terms</a> and <a href="#" class="terms-link">Privacy</a></label>
-    </div>
-    <button type="button" id="signup-btn" class="auth-btn"><i class="fas fa-user-check"></i> Sign up</button>
-  </div>
-</div>
+    <main>
+      <section class="hero">
+        <h1>A quiet place for your loud ideas.</h1>
+        <p class="tagline">Minimal, distraction-free note-taking designed for professionals. Capture thoughts instantly, automatically synced to the cloud.</p>
+        <div class="cta-buttons">
+          <a href="login.html" class="btn-primary"><i class="fas fa-pen-fancy"></i> Log in to start writing</a>
+          <a href="login.html#signup" class="btn-secondary">Sign up for free</a>
+        </div>
+      </section>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="auth.js"></script>
-<script>
-  // Password toggle functionality for login/signup
-  document.querySelectorAll('.toggle-password').forEach(button => {
-    button.addEventListener('click', function() {
-      const targetId = this.getAttribute('data-target');
-      const input = document.getElementById(targetId);
-      if (input) {
-        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-        input.setAttribute('type', type);
-        const icon = this.querySelector('i');
-        icon.classList.toggle('fa-eye-slash');
-        icon.classList.toggle('fa-eye');
-      }
-    });
-  });
-</script>
+      <section id="features" class="features">
+        <h2>Designed for focus</h2>
+        <div class="feature-grid">
+           <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+            <h3>Instant sync</h3>
+            <p>Your notes are automatically saved and available on all devices.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-eye-slash"></i></div>
+            <h3>Distraction-free</h3>
+            <p>Clean interface with no clutter. Just you and your ideas.</p>
+          </div>
+         
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-lock"></i></div>
+            <h3>Secure & private</h3>
+            <p>Your data is encrypted and only accessible by you.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="social-proof">
+        <p>Join thousands of focused professionals.</p>
+        <p class="highlight">✨ Trusted by creators, developers, and teams worldwide ✨</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Made with <i class="fas fa-heart" style="color: #ef4444;"></i> on Replit</p>
+      <p>&copy; 2025 QuietNotes — All rights reserved</p>
+    </footer>
+  </div>
 </body>
 </html>
