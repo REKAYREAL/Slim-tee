@@ -211,6 +211,9 @@
   </style>
 </head>
 <body>
+  <div id="offlineBanner" style="display: none; background: #f0ad4e; color: white; text-align: center; padding: 8px; font-size: 14px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999;">
+  📡 You're offline. Changes will sync when you reconnect.
+</div>
 <div class="auth-card">
   <div class="auth-header">
     <div class="auth-icon"><i class="fas fa-pen-fancy"></i></div>
@@ -291,6 +294,17 @@
 <script src="firebase-config.js"></script>
 <script src="auth.js"></script>
 <script>
+  // Network status handler
+function updateOfflineBanner() {
+  const banner = document.getElementById('offlineBanner');
+  if (banner) {
+    banner.style.display = navigator.onLine ? 'none' : 'block';
+  }
+}
+window.addEventListener('online', updateOfflineBanner);
+window.addEventListener('offline', updateOfflineBanner);
+updateOfflineBanner();
+
   // Password toggle functionality for login/signup
   document.querySelectorAll('.toggle-password').forEach(button => {
     button.addEventListener('click', function() {
